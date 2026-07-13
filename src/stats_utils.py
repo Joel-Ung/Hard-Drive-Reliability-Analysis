@@ -1,5 +1,5 @@
 """
-Statistical analysis utilities — Week 3.
+Statistical analysis utilities.
 
 Operates on the small one row per drive `cleaning.build_snapshot_dataset`. 
 Since it is small and collapsed, pandas/scipy is sufficient here, and no DuckDB is needed at this stage.
@@ -44,6 +44,7 @@ def mann_whitney_by_attribute(df: pd.DataFrame, attributes: list, group_col: str
         if len(group0) == 0 or len(group1) == 0:
             continue
         stat, p = mannwhitneyu(group1, group0, alternative="two-sided")
+        
         # rank-biserial effect size: 2U/(n1*n0) - 1, ranges -1 to 1
         effect = 2 * stat / (len(group1) * len(group0)) - 1
         results.append({
@@ -62,8 +63,8 @@ def mann_whitney_by_attribute(df: pd.DataFrame, attributes: list, group_col: str
 def correlation_matrix(df: pd.DataFrame, attributes: list, method: str = "spearman") -> pd.DataFrame:
     """
     Pairwise correlation among SMART attributes, to flag multicollinearity before
-    any modeling. Spearman (rank-based) by default, consistent with the
-    non-normal, skewed nature of these attributes (same reasoning as the
+    any modelling. Spearman (rank-based) by default, consistent with the
+    non-normal, skewed nature of the attributes (same reasoning as the
     Mann-Whitney choice above).
     """
     return df[attributes].corr(method=method)
@@ -86,12 +87,11 @@ def high_correlation_pairs(corr: pd.DataFrame, threshold: float = 0.7) -> pd.Dat
 def logistic_check(df: pd.DataFrame, features: list, target: str = "label",
                           test_size: float = 0.3, random_state: int = 42) -> dict:
     """
-    A simple, non-tuned logistic regression to sanity-check whether there's
-    separable signal in the top candidate features. This is descriptive only —
-    not a final model, and not a substitute for Month 4's proper ML project.
+    A simple, non-tuned logistic regression to check whether there's
+    a separable signal in the top candidate features. 
 
-    Uses class_weight="balanced" to compensate for the class imbalance rather
-    than letting the model predict "healthy" for the majority of scenarios, and reports
+    Use class_weight="balanced" to compensate for the class imbalance rather than 
+    letting the model predict "healthy" for the majority of scenarios, and reports
     ROC-AUC rather than accuracy, which would be misleading on such an imbalanced dataset.
     """
     data = df[features + [target]].dropna()
